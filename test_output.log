@@ -1,0 +1,109 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.15, pytest-9.1.1, pluggy-1.7.0 -- /opt/hostedtoolcache/Python/3.12.15/x64/bin/python
+cachedir: .pytest_cache
+rootdir: /home/runner/work/clinical-billing-audit/clinical-billing-audit
+configfile: pyproject.toml
+plugins: platformdirs-4.13.3, cov-7.1.0, anyio-4.15.1
+collecting ... collected 34 items
+
+tests/test_anomaly_scoring.py::test_anomaly_detector_feature_engineering PASSED [  2%]
+tests/test_anomaly_scoring.py::test_anomaly_detector_fit_score PASSED    [  5%]
+tests/test_anomaly_scoring.py::test_ensemble_scorer PASSED               [  8%]
+tests/test_baseline_model.py::test_baseline_classifier_init FAILED       [ 11%]
+tests/test_baseline_model.py::test_baseline_classifier_fit_predict FAILED [ 14%]
+tests/test_baseline_model.py::test_baseline_feature_importance FAILED    [ 17%]
+tests/test_cleaners_and_loaders.py::test_clean_clinical_notes PASSED     [ 20%]
+tests/test_cleaners_and_loaders.py::test_clean_specialty_labels PASSED   [ 23%]
+tests/test_cleaners_and_loaders.py::test_profile_dataset PASSED          [ 26%]
+tests/test_cleaners_and_loaders.py::test_clean_claims_data PASSED        [ 29%]
+tests/test_cleaners_and_loaders.py::test_load_icd9_mapping PASSED        [ 32%]
+tests/test_cleaners_and_loaders.py::test_pair_notes_and_claims PASSED    [ 35%]
+tests/test_cleaners_and_loaders.py::test_inject_mismatches PASSED        [ 38%]
+tests/test_cli.py::test_cli_help PASSED                                  [ 41%]
+tests/test_cli.py::test_cli_subcommand_help PASSED                       [ 44%]
+tests/test_dashboard_export.py::test_export_all_powerbi_tables PASSED    [ 47%]
+tests/test_data_quality.py::test_quality_result_dataclass PASSED         [ 50%]
+tests/test_data_quality.py::test_quality_report_aggregation PASSED       [ 52%]
+tests/test_data_quality.py::test_check_null_fraction PASSED              [ 55%]
+tests/test_data_quality.py::test_check_duplicates PASSED                 [ 58%]
+tests/test_data_quality.py::test_check_length_outliers PASSED            [ 61%]
+tests/test_data_quality.py::test_check_class_balance PASSED              [ 64%]
+tests/test_data_quality.py::test_data_quality_checker_orchestrator PASSED [ 67%]
+tests/test_evaluation.py::test_compute_binary_metrics PASSED             [ 70%]
+tests/test_evaluation.py::test_compute_threshold_sweep PASSED            [ 73%]
+tests/test_evaluation.py::test_generate_evaluation_report PASSED         [ 76%]
+tests/test_evaluation.py::test_error_analysis_breakdowns PASSED          [ 79%]
+tests/test_evaluation.py::test_human_review_workflow PASSED              [ 82%]
+tests/test_ner_extractor.py::test_clinical_entity_and_ner_result PASSED  [ 85%]
+tests/test_ner_extractor.py::test_preprocess_note PASSED                 [ 88%]
+tests/test_ner_extractor.py::test_extract_entities_from_note PASSED      [ 91%]
+tests/test_ner_extractor.py::test_extract_entities_batch PASSED          [ 94%]
+tests/test_ner_extractor.py::test_normalize_entity PASSED                [ 97%]
+tests/test_ner_extractor.py::test_map_entities_to_categories PASSED      [100%]/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/coverage/inorout.py:574: CoverageWarning: Module clinical_billing_audit was previously imported, but not measured (module-not-measured); see https://coverage.readthedocs.io/en/7.16.2/messages.html#warning-module-not-measured
+  self.warn(msg, slug="module-not-measured")
+
+
+=================================== FAILURES ===================================
+________________________ test_baseline_classifier_init _________________________
+tests/test_baseline_model.py:14: in test_baseline_classifier_init
+    clf = BaselineClassifier()
+          ^^^^^^^^^^^^^^^^^^^^
+src/clinical_billing_audit/models/baseline.py:75: in __init__
+    self.classifier = LogisticRegression(**self.lr_params)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: LogisticRegression.__init__() got an unexpected keyword argument 'multi_class'
+_____________________ test_baseline_classifier_fit_predict _____________________
+tests/test_baseline_model.py:21: in test_baseline_classifier_fit_predict
+    clf = BaselineClassifier(
+src/clinical_billing_audit/models/baseline.py:75: in __init__
+    self.classifier = LogisticRegression(**self.lr_params)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: LogisticRegression.__init__() got an unexpected keyword argument 'multi_class'
+_______________________ test_baseline_feature_importance _______________________
+tests/test_baseline_model.py:65: in test_baseline_feature_importance
+    clf = BaselineClassifier(
+src/clinical_billing_audit/models/baseline.py:75: in __init__
+    self.classifier = LogisticRegression(**self.lr_params)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: LogisticRegression.__init__() got an unexpected keyword argument 'multi_class'
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.15-final-0 _______________
+
+Name                                                      Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------------------------
+src/clinical_billing_audit/__init__.py                        2      0   100%
+src/clinical_billing_audit/cli.py                           177    137    23%   42-78, 85-108, 116-183, 190-223, 230-287, 297-311, 318-324, 328
+src/clinical_billing_audit/config.py                         68     20    71%   23-29, 63, 67, 70, 76, 80, 84, 88, 92, 96, 100, 104, 108, 131, 137
+src/clinical_billing_audit/dashboard/__init__.py              0      0   100%
+src/clinical_billing_audit/dashboard/data_export.py          94      8    91%   29-30, 56, 114, 139-140, 189, 206
+src/clinical_billing_audit/data/__init__.py                   0      0   100%
+src/clinical_billing_audit/data/cleaners.py                  83      2    98%   117-118
+src/clinical_billing_audit/data/loaders.py                   36     26    28%   30-57, 78-97, 117-118
+src/clinical_billing_audit/data/mismatch_injector.py         54      2    96%   54, 69
+src/clinical_billing_audit/data/pairing.py                   73     13    82%   37, 40, 46, 48, 58, 61-65, 104, 148, 150
+src/clinical_billing_audit/data/quality.py                  106     14    87%   173, 229, 269-293, 386-387
+src/clinical_billing_audit/evaluation/__init__.py             0      0   100%
+src/clinical_billing_audit/evaluation/error_analysis.py      93     39    58%   27-28, 56-57, 112, 157, 214-226, 254-271, 287-318
+src/clinical_billing_audit/evaluation/human_review.py        70     15    79%   61-67, 131, 135, 161-165, 198-199, 208
+src/clinical_billing_audit/evaluation/metrics.py            110     55    50%   28-29, 85-86, 89-90, 116-131, 196-222, 245-273, 308, 311-319
+src/clinical_billing_audit/models/__init__.py                 0      0   100%
+src/clinical_billing_audit/models/anomaly.py                136     18    87%   122, 130, 134-150, 162, 178, 182-183, 252, 265
+src/clinical_billing_audit/models/baseline.py               125     90    28%   72, 76-79, 99-133, 157-179, 205-211, 225-230, 246-265, 285-288, 303-332, 342-361, 377-391
+src/clinical_billing_audit/models/ensemble.py                37      4    89%   80, 84, 95, 106
+src/clinical_billing_audit/models/transformer.py             91     91     0%   10-411
+src/clinical_billing_audit/nlp/__init__.py                    0      0   100%
+src/clinical_billing_audit/nlp/code_mapper.py                26      2    92%   127, 163
+src/clinical_billing_audit/nlp/entity_normalizer.py          20      1    95%   153
+src/clinical_billing_audit/nlp/ner_extractor.py             137     40    71%   137, 147, 152-154, 158-171, 192, 198-200, 243-325, 358
+src/clinical_billing_audit/nlp/text_preprocessor.py          48     23    52%   94, 113, 132-152, 169-178, 199
+src/clinical_billing_audit/utils/__init__.py                  2      0   100%
+src/clinical_billing_audit/utils/constants.py                16      0   100%
+src/clinical_billing_audit/utils/logging_config.py           28      2    93%   42-43
+---------------------------------------------------------------------------------------
+TOTAL                                                      1632    602    63%
+Coverage XML written to file coverage.xml
+=========================== short test summary info ============================
+FAILED tests/test_baseline_model.py::test_baseline_classifier_init - TypeError: LogisticRegression.__init__() got an unexpected keyword argument 'multi_class'
+FAILED tests/test_baseline_model.py::test_baseline_classifier_fit_predict - TypeError: LogisticRegression.__init__() got an unexpected keyword argument 'multi_class'
+FAILED tests/test_baseline_model.py::test_baseline_feature_importance - TypeError: LogisticRegression.__init__() got an unexpected keyword argument 'multi_class'
+========================= 3 failed, 31 passed in 9.11s =========================
