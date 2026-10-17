@@ -135,7 +135,7 @@ class NERExtractor:
             try:
                 self._ner_nlp = spacy.load(self.ner_model_name)
                 logger.info("Loaded NER model: %s", self.ner_model_name)
-            except OSError:
+            except Exception:
                 logger.warning(
                     "NER model '%s' not found. Trying base model.",
                     self.ner_model_name,
@@ -145,11 +145,11 @@ class NERExtractor:
             try:
                 self._nlp = spacy.load(self.spacy_model_name)
                 logger.info("Loaded base model: %s", self.spacy_model_name)
-            except OSError:
+            except Exception:
                 try:
                     self._nlp = spacy.load("en_core_web_sm")
                     logger.warning("Fell back to en_core_web_sm")
-                except OSError:
+                except Exception:
                     logger.warning("No spaCy model available — using regex fallback.")
                     self._use_fallback = True
 
