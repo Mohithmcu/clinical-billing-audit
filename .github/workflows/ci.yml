@@ -38,7 +38,15 @@ jobs:
           pip install -e ".[dev]"
           python -m spacy download en_core_web_sm
       - name: Run tests
-        run: pytest tests/ -v --cov=clinical_billing_audit --cov-report=xml
+        shell: bash
+        run: |
+          pytest tests/ -v --cov=clinical_billing_audit --cov-report=xml 2>&1 | tee test_output.log
+          TEST_EXIT=${PIPESTATUS[0]}
+          echo "### Test Output (Python ${{ matrix.python-version }})" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -n 60 test_output.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit $TEST_EXIT
       - name: Upload coverage
         if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@v3
