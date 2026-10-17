@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -41,13 +44,15 @@ jobs:
         shell: bash
         run: |
           pytest tests/ -v --cov=clinical_billing_audit --cov-report=xml 2>&1 | tee test_output.log
-          TEST_EXIT=${PIPESTATUS[0]}
-          if [ $TEST_EXIT -ne 0 ]; then
-            while IFS= read -r line; do
-              echo "::error::$line"
-            done < <(grep -E -C 3 "FAILED|ERROR|Traceback" test_output.log | head -n 25)
-          fi
-          exit $TEST_EXIT
+      - name: Push failure log
+        if: failure()
+        run: |
+          git config --global user.name "CI Bot"
+          git config --global user.email "ci@bot.com"
+          git checkout -B "debug-log-${{ matrix.python-version }}"
+          git add -f test_output.log
+          git commit -m "debug: test_output.log for ${{ matrix.python-version }}"
+          git push -f origin "debug-log-${{ matrix.python-version }}"
       - name: Upload coverage
         if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@v3
