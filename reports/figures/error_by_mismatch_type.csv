@@ -1,0 +1,5 @@
+mismatch_type,total,detected,detection_rate,missed
+miscoding,77,77,1.0,0
+upcoding,114,112,0.9824561403508771,2
+undercoding,56,52,0.9285714285714286,4
+correct_match,990,3,0.0030303030303030303,987

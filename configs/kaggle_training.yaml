@@ -1,0 +1,56 @@
+# ============================================================
+# Clinical Billing Audit — Kaggle GPU Training Configuration
+# ============================================================
+# Use this configuration when training the BioBERT / ClinicalBERT
+# model on Kaggle (P100 or T4 GPU).
+
+project:
+  name: "clinical-billing-audit-kaggle"
+  version: "1.0.0"
+  random_seed: 42
+
+# ── Data Paths (Kaggle Environment) ──────────────────────────
+data:
+  raw_dir: "/kaggle/working/data/raw"
+  interim_dir: "/kaggle/working/data/interim"
+  processed_dir: "/kaggle/working/data/processed"
+  mtsamples_file: "/kaggle/input/medicaltranscriptions/mtsamples.csv"
+  output_model_dir: "/kaggle/working/models/transformer"
+
+# ── Transformer Fine-Tuning Hyperparameters ─────────────────
+transformer:
+  # Base pre-trained model:
+  # Alternatives: "emilyalsentzer/Bio_ClinicalBERT", "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract"
+  model_name: "dmis-lab/biobert-base-cased-v1.2"
+  max_length: 512
+  learning_rate: 2.0e-5
+  batch_size: 16
+  eval_batch_size: 32
+  num_epochs: 5
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  gradient_accumulation_steps: 1
+  fp16: true                     # Mixed precision for NVIDIA P100 / T4
+  output_dir: "/kaggle/working/models/transformer"
+  eval_strategy: "epoch"
+  save_strategy: "epoch"
+  load_best_model_at_end: true
+  metric_for_best_model: "f1_weighted"
+  early_stopping_patience: 2
+
+# ── Baseline Comparison (Optional on Kaggle) ────────────────
+baseline:
+  tfidf:
+    max_features: 15000
+    ngram_range: [1, 2]
+    sublinear_tf: true
+  logistic_regression:
+    C: 1.0
+    max_iter: 1000
+    class_weight: "balanced"
+  test_size: 0.2
+
+# ── Export & Logging ─────────────────────────────────────────
+logging:
+  level: "INFO"
+  format: "%(asctime)s | %(levelname)-8s | %(message)s"

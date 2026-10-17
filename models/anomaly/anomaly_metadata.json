@@ -1,0 +1,15 @@
+{
+  "n_estimators": 200,
+  "contamination": 0.15,
+  "feature_names": [
+    "code_frequency_deviation",
+    "ner_vs_billed_similarity",
+    "classifier_confidence_gap",
+    "classifier_max_confidence",
+    "classifier_billed_match",
+    "note_length_ratio",
+    "provider_entropy_deviation",
+    "entity_density",
+    "diagnosis_count"
+  ]
+}

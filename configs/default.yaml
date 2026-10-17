@@ -1,0 +1,131 @@
+# ============================================================
+# Clinical Billing Audit — Default Configuration
+# ============================================================
+
+project:
+  name: "clinical-billing-audit"
+  version: "1.0.0"
+  random_seed: 42
+
+# ── Data Paths ──────────────────────────────────────────────
+data:
+  raw_dir: "data/raw"
+  interim_dir: "data/interim"
+  processed_dir: "data/processed"
+  hand_labeled_dir: "data/hand_labeled"
+  mtsamples_file: "data/raw/mtsamples.csv"
+  cms_claims_file: "data/raw/cms_synpuf_claims.csv"
+
+# ── Data Quality ────────────────────────────────────────────
+quality:
+  max_null_fraction: 0.10          # Flag columns with >10% nulls
+  max_duplicate_fraction: 0.05     # Flag if >5% duplicate notes
+  min_note_length: 50              # Characters — shorter notes are outliers
+  max_note_length: 50000           # Characters — longer notes are outliers
+  length_outlier_iqr_factor: 3.0   # IQR multiplier for length outliers
+
+# ── Data Pairing ────────────────────────────────────────────
+pairing:
+  mismatch_injection_rate: 0.20    # 20% synthetic mismatches
+  mismatch_types:
+    - "upcoding"      # Billed code is more complex/expensive than note supports
+    - "miscoding"      # Billed code is wrong category entirely
+    - "undercoding"    # Billed code is less complex than note supports
+  mismatch_weights: [0.5, 0.3, 0.2]  # Probability weights for each type
+
+# ── NLP / NER ───────────────────────────────────────────────
+nlp:
+  spacy_model: "en_core_sci_lg"
+  ner_model: "en_ner_bc5cdr_md"
+  # Entity types to extract
+  entity_types:
+    - "DISEASE"
+    - "CHEMICAL"        # Medications
+  # Additional custom patterns for procedure detection
+  use_custom_patterns: true
+  max_note_tokens: 512  # Truncate for transformer input
+  batch_size: 32
+
+# ── Baseline Model (TF-IDF + LR) ───────────────────────────
+baseline:
+  tfidf:
+    max_features: 15000
+    ngram_range: [1, 2]
+    min_df: 2
+    max_df: 0.95
+    sublinear_tf: true
+  logistic_regression:
+    C: 1.0
+    max_iter: 1000
+    solver: "lbfgs"
+    multi_class: "multinomial"
+    class_weight: "balanced"
+  test_size: 0.2
+  cv_folds: 5
+
+# ── Transformer Model ──────────────────────────────────────
+transformer:
+  model_name: "dmis-lab/biobert-base-cased-v1.2"
+  max_length: 512
+  learning_rate: 2.0e-5
+  batch_size: 16
+  num_epochs: 5
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  fp16: true             # Mixed precision on GPU
+  output_dir: "models/transformer"
+  eval_strategy: "epoch"
+  save_strategy: "epoch"
+  load_best_model_at_end: true
+  metric_for_best_model: "f1_weighted"
+
+# ── Anomaly Detection ──────────────────────────────────────
+anomaly:
+  isolation_forest:
+    n_estimators: 200
+    contamination: 0.15   # Expected fraction of anomalies
+    max_samples: "auto"
+    random_state: 42
+  # Feature engineering
+  features:
+    - "code_frequency_deviation"
+    - "ner_vs_billed_similarity"
+    - "classifier_confidence_gap"
+    - "note_length_code_complexity_ratio"
+    - "provider_code_distribution_deviation"
+  # Mismatch severity thresholds
+  thresholds:
+    high_risk: 0.85       # Anomaly score >= this → high risk
+    medium_risk: 0.65     # Anomaly score >= this → medium risk
+    low_risk: 0.45        # Anomaly score >= this → low risk
+
+# ── Evaluation ──────────────────────────────────────────────
+evaluation:
+  hand_labeled_file: "data/hand_labeled/labeled_notes.csv"
+  n_labeled_samples: 120
+  metrics:
+    - "precision"
+    - "recall"
+    - "f1_score"
+    - "pr_auc"
+    - "roc_auc"
+  confidence_threshold: 0.5
+
+# ── Dashboard / Export ──────────────────────────────────────
+dashboard:
+  export_dir: "reports/powerbi"
+  exports:
+    - "flag_summary.csv"
+    - "flag_by_specialty.csv"
+    - "model_performance.csv"
+    - "provider_scores.csv"
+    - "mismatch_details.csv"
+    - "precision_recall_curve.csv"
+    - "confusion_matrix.csv"
+    - "feature_importance.csv"
+
+# ── Logging ─────────────────────────────────────────────────
+logging:
+  level: "INFO"
+  format: "%(asctime)s | %(name)-30s | %(levelname)-8s | %(message)s"
+  log_file: "reports/pipeline.log"
