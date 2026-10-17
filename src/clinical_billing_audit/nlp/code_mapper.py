@@ -22,56 +22,46 @@ _DIAGNOSIS_TO_CATEGORY: dict[str, str] = {
     "cerebrovascular_accident": "circulatory",
     "deep_vein_thrombosis": "circulatory",
     "pulmonary_embolism": "circulatory",
-
     # Metabolic / Endocrine
     "diabetes_mellitus_type2": "endocrine",
     "diabetes_mellitus_type1": "endocrine",
     "hypothyroidism": "endocrine",
     "hyperthyroidism": "endocrine",
     "obesity": "endocrine",
-
     # Respiratory
     "asthma": "respiratory",
     "copd": "respiratory",
     "pneumonia": "respiratory",
-
     # Musculoskeletal
     "arthritis": "musculoskeletal",
     "osteoarthritis": "musculoskeletal",
     "rheumatoid_arthritis": "musculoskeletal",
     "osteoporosis": "musculoskeletal",
     "fracture": "injury_external",
-
     # Neurological
     "epilepsy": "nervous",
     "migraine": "nervous",
     "alzheimer_disease": "nervous",
     "parkinson_disease": "nervous",
-
     # Mental health
     "depressive_disorder": "mental_behavioral",
     "anxiety_disorder": "mental_behavioral",
     "schizophrenia": "mental_behavioral",
-
     # GI
     "gerd": "digestive",
     "hepatitis": "digestive",
     "cirrhosis": "digestive",
-
     # Renal
     "chronic_kidney_disease": "genitourinary",
     "urinary_tract_infection": "genitourinary",
-
     # Oncology
     "malignant_neoplasm": "neoplasms",
     "melanoma": "neoplasms",
     "lymphoma": "neoplasms",
     "leukemia": "neoplasms",
-
     # Infectious
     "sepsis": "infectious",
     "cellulitis": "skin_subcutaneous",
-
     # Hematologic
     "anemia": "blood",
 }

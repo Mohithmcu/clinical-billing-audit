@@ -55,12 +55,19 @@ def export_flag_by_specialty(df: pd.DataFrame, output_dir: Path) -> None:
     if "medical_specialty" not in df.columns or "is_flagged" not in df.columns:
         return
 
-    group = df.groupby("medical_specialty").agg(
-        total_pairs=("is_flagged", "count"),
-        total_flagged=("is_flagged", "sum"),
-        flag_rate=("is_flagged", "mean"),
-        avg_anomaly_score=("anomaly_score", "mean") if "anomaly_score" in df.columns else ("is_flagged", "mean"),
-    ).reset_index().sort_values("flag_rate", ascending=False)
+    group = (
+        df.groupby("medical_specialty")
+        .agg(
+            total_pairs=("is_flagged", "count"),
+            total_flagged=("is_flagged", "sum"),
+            flag_rate=("is_flagged", "mean"),
+            avg_anomaly_score=("anomaly_score", "mean")
+            if "anomaly_score" in df.columns
+            else ("is_flagged", "mean"),
+        )
+        .reset_index()
+        .sort_values("flag_rate", ascending=False)
+    )
 
     if "is_mismatch" in df.columns:
         mismatch_rates = df.groupby("medical_specialty")["is_mismatch"].mean().reset_index()
@@ -69,9 +76,15 @@ def export_flag_by_specialty(df: pd.DataFrame, output_dir: Path) -> None:
 
     if "severity" in df.columns:
         for sev in ["HIGH_RISK", "MEDIUM_RISK", "LOW_RISK"]:
-            group[f"n_{sev.lower()}"] = df[df["severity"] == sev].groupby(
-                "medical_specialty"
-            ).size().reindex(group["medical_specialty"]).fillna(0).astype(int).values
+            group[f"n_{sev.lower()}"] = (
+                df[df["severity"] == sev]
+                .groupby("medical_specialty")
+                .size()
+                .reindex(group["medical_specialty"])
+                .fillna(0)
+                .astype(int)
+                .values
+            )
 
     group.to_csv(output_dir / "flag_by_specialty.csv", index=False)
     logger.info("Exported flag_by_specialty.csv")
@@ -121,7 +134,7 @@ def export_mismatch_details(
     text_preview_length: int = 300,
 ) -> None:
     """Export individual flagged case details."""
-    flagged = df[df.get("is_flagged", pd.Series(dtype=bool)) == True]
+    flagged = df[df.get("is_flagged", pd.Series(dtype=bool)).astype(bool)]
     if flagged.empty:
         logger.warning("No flagged cases to export.")
         return
@@ -137,12 +150,25 @@ def export_mismatch_details(
         flagged["note_preview"] = flagged["transcription"].astype(str).str[:text_preview_length]
         flagged = flagged.drop(columns=["transcription"], errors="ignore")
 
-    export_cols = [c for c in [
-        "pair_id", "note_id", "medical_specialty", "code_category",
-        "billed_category", "mismatch_type", "anomaly_score", "severity",
-        "severity_label", "provider_id", "note_preview",
-        "ensemble_score", "ensemble_severity",
-    ] if c in flagged.columns]
+    export_cols = [
+        c
+        for c in [
+            "pair_id",
+            "note_id",
+            "medical_specialty",
+            "code_category",
+            "billed_category",
+            "mismatch_type",
+            "anomaly_score",
+            "severity",
+            "severity_label",
+            "provider_id",
+            "note_preview",
+            "ensemble_score",
+            "ensemble_severity",
+        ]
+        if c in flagged.columns
+    ]
 
     flagged[export_cols].to_csv(output_dir / "mismatch_details.csv", index=False)
     logger.info("Exported mismatch_details.csv (%d rows)", len(flagged))

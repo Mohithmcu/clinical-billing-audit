@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pandas as pd
-import pytest
 
 from clinical_billing_audit.nlp.code_mapper import (
     entity_to_code_category,

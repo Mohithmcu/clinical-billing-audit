@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any
 
 import pandas as pd
 
@@ -24,10 +23,10 @@ class ClinicalEntity:
     """A single extracted clinical entity."""
 
     text: str
-    label: str            # e.g. DISEASE, CHEMICAL, PROCEDURE
+    label: str  # e.g. DISEASE, CHEMICAL, PROCEDURE
     start: int = 0
     end: int = 0
-    cui: str | None = None    # UMLS CUI if available
+    cui: str | None = None  # UMLS CUI if available
     confidence: float = 1.0
 
 
@@ -157,7 +156,8 @@ class NERExtractor:
             # Add UMLS linker if requested
             if self.use_linker and self._nlp and not self._use_fallback:
                 try:
-                    from scispacy.linking import EntityLinker
+                    from scispacy.linking import EntityLinker  # noqa: F401
+
                     self._nlp.add_pipe(
                         "scispacy_linker",
                         config={"resolve_abbreviations": True, "linker_name": "umls"},
@@ -197,29 +197,35 @@ class NERExtractor:
         if self._ner_nlp:
             doc = self._ner_nlp(preprocessed[:100_000])  # Limit for safety
             for ent in doc.ents:
-                entities.append(ClinicalEntity(
-                    text=ent.text.lower().strip(),
-                    label=ent.label_,
-                    start=ent.start_char,
-                    end=ent.end_char,
-                ))
+                entities.append(
+                    ClinicalEntity(
+                        text=ent.text.lower().strip(),
+                        label=ent.label_,
+                        start=ent.start_char,
+                        end=ent.end_char,
+                    )
+                )
 
         # Extract procedures and anatomy with regex
         for match in _PROCEDURE_RE.finditer(preprocessed):
-            entities.append(ClinicalEntity(
-                text=match.group().lower().strip(),
-                label="PROCEDURE",
-                start=match.start(),
-                end=match.end(),
-            ))
+            entities.append(
+                ClinicalEntity(
+                    text=match.group().lower().strip(),
+                    label="PROCEDURE",
+                    start=match.start(),
+                    end=match.end(),
+                )
+            )
 
         for match in _ANATOMY_RE.finditer(preprocessed):
-            entities.append(ClinicalEntity(
-                text=match.group().lower().strip(),
-                label="ANATOMY",
-                start=match.start(),
-                end=match.end(),
-            ))
+            entities.append(
+                ClinicalEntity(
+                    text=match.group().lower().strip(),
+                    label="ANATOMY",
+                    start=match.start(),
+                    end=match.end(),
+                )
+            )
 
         # Deduplicate
         seen = set()
@@ -252,13 +258,15 @@ class NERExtractor:
         ]
         for pattern in disease_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
-                entities.append(ClinicalEntity(
-                    text=match.group().lower().strip(),
-                    label="DISEASE",
-                    start=match.start(),
-                    end=match.end(),
-                    confidence=0.7,
-                ))
+                entities.append(
+                    ClinicalEntity(
+                        text=match.group().lower().strip(),
+                        label="DISEASE",
+                        start=match.start(),
+                        end=match.end(),
+                        confidence=0.7,
+                    )
+                )
 
         # Medication patterns
         med_patterns = [
@@ -271,33 +279,39 @@ class NERExtractor:
         ]
         for pattern in med_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
-                entities.append(ClinicalEntity(
-                    text=match.group().lower().strip(),
-                    label="CHEMICAL",
-                    start=match.start(),
-                    end=match.end(),
-                    confidence=0.7,
-                ))
+                entities.append(
+                    ClinicalEntity(
+                        text=match.group().lower().strip(),
+                        label="CHEMICAL",
+                        start=match.start(),
+                        end=match.end(),
+                        confidence=0.7,
+                    )
+                )
 
         # Procedures
         for match in _PROCEDURE_RE.finditer(text):
-            entities.append(ClinicalEntity(
-                text=match.group().lower().strip(),
-                label="PROCEDURE",
-                start=match.start(),
-                end=match.end(),
-                confidence=0.7,
-            ))
+            entities.append(
+                ClinicalEntity(
+                    text=match.group().lower().strip(),
+                    label="PROCEDURE",
+                    start=match.start(),
+                    end=match.end(),
+                    confidence=0.7,
+                )
+            )
 
         # Anatomy
         for match in _ANATOMY_RE.finditer(text):
-            entities.append(ClinicalEntity(
-                text=match.group().lower().strip(),
-                label="ANATOMY",
-                start=match.start(),
-                end=match.end(),
-                confidence=0.7,
-            ))
+            entities.append(
+                ClinicalEntity(
+                    text=match.group().lower().strip(),
+                    label="ANATOMY",
+                    start=match.start(),
+                    end=match.end(),
+                    confidence=0.7,
+                )
+            )
 
         # Deduplicate
         seen = set()
@@ -362,16 +376,18 @@ class NERExtractor:
         """
         rows = []
         for r in results:
-            rows.append({
-                "note_id": r.note_id,
-                "n_entities": len(r.entities),
-                "n_diagnoses": len(r.diagnoses),
-                "n_medications": len(r.medications),
-                "n_procedures": len(r.procedures),
-                "n_anatomy": len(r.anatomy),
-                "diagnoses": "; ".join(r.diagnoses),
-                "medications": "; ".join(r.medications),
-                "procedures": "; ".join(r.procedures),
-                "anatomy": "; ".join(r.anatomy),
-            })
+            rows.append(
+                {
+                    "note_id": r.note_id,
+                    "n_entities": len(r.entities),
+                    "n_diagnoses": len(r.diagnoses),
+                    "n_medications": len(r.medications),
+                    "n_procedures": len(r.procedures),
+                    "n_anatomy": len(r.anatomy),
+                    "diagnoses": "; ".join(r.diagnoses),
+                    "medications": "; ".join(r.medications),
+                    "procedures": "; ".join(r.procedures),
+                    "anatomy": "; ".join(r.anatomy),
+                }
+            )
         return pd.DataFrame(rows)

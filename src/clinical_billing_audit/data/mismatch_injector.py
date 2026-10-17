@@ -146,7 +146,9 @@ def inject_mismatches(
     type_counts = df["mismatch_type"].value_counts()
     logger.info(
         "Injected %d mismatches (%.1f%%) into %d pairs:",
-        n_mismatches, 100 * injection_rate, n_total,
+        n_mismatches,
+        100 * injection_rate,
+        n_total,
     )
     for mtype, count in type_counts.items():
         logger.info("  %s: %d (%.1f%%)", mtype, count, 100 * count / n_total)

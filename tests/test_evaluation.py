@@ -6,13 +6,11 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from clinical_billing_audit.evaluation.error_analysis import (
     error_breakdown,
     error_by_mismatch_type,
     error_by_note_length,
-    top_false_negatives,
     top_false_positives,
 )
 from clinical_billing_audit.evaluation.human_review import (
@@ -40,7 +38,7 @@ def test_compute_binary_metrics():
     assert "pr_auc" in metrics
     assert "roc_auc" in metrics
     assert metrics["precision"] == 1.0  # 3 TP, 0 FP
-    assert metrics["recall"] == 0.75   # 3 TP, 1 FN
+    assert metrics["recall"] == 0.75  # 3 TP, 1 FN
 
 
 def test_compute_threshold_sweep():
@@ -72,17 +70,23 @@ def test_error_analysis_breakdowns(sample_paired_df: pd.DataFrame):
     df["anomaly_score"] = [0.1, 0.9, 0.2, 0.3, 0.8, 0.15, 0.25, 0.4, 0.1, 0.2]
     df["is_mismatch"] = df["is_injected_mismatch"]
 
-    by_spec = error_breakdown(df, y_true_col="is_mismatch", y_pred_col="is_flagged", group_col="medical_specialty")
+    by_spec = error_breakdown(
+        df, y_true_col="is_mismatch", y_pred_col="is_flagged", group_col="medical_specialty"
+    )
     assert isinstance(by_spec, pd.DataFrame)
     assert not by_spec.empty
 
     by_mtype = error_by_mismatch_type(df, y_pred_col="is_flagged")
     assert isinstance(by_mtype, pd.DataFrame)
 
-    by_length = error_by_note_length(df, text_col="transcription", y_true_col="is_mismatch", y_pred_col="is_flagged", n_bins=2)
+    by_length = error_by_note_length(
+        df, text_col="transcription", y_true_col="is_mismatch", y_pred_col="is_flagged", n_bins=2
+    )
     assert isinstance(by_length, pd.DataFrame)
 
-    fps = top_false_positives(df, score_col="anomaly_score", y_true_col="is_mismatch", y_pred_col="is_flagged")
+    fps = top_false_positives(
+        df, score_col="anomaly_score", y_true_col="is_mismatch", y_pred_col="is_flagged"
+    )
     assert isinstance(fps, pd.DataFrame)
 
 
@@ -100,10 +104,19 @@ def test_human_review_workflow(sample_paired_df: pd.DataFrame, temp_dir: Path):
     assert template_csv.exists()
 
     # Simulate completed human reviews
-    human_df = pd.DataFrame({
-        "note_id": sample["note_id"],
-        "human_label": ["correct_match", "upcoding", "correct_match", "correct_match", "miscoding", "correct_match"][:len(sample)],
-    })
+    human_df = pd.DataFrame(
+        {
+            "note_id": sample["note_id"],
+            "human_label": [
+                "correct_match",
+                "upcoding",
+                "correct_match",
+                "correct_match",
+                "miscoding",
+                "correct_match",
+            ][: len(sample)],
+        }
+    )
     comparison = compare_with_model(human_df, df, join_col="note_id")
     assert isinstance(comparison, dict)
     assert "agreement_rate" in comparison

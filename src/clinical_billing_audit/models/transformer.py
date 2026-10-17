@@ -11,10 +11,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
 
 import numpy as np
-import pandas as pd
 
 from clinical_billing_audit.utils.logging_config import get_logger
 
@@ -187,7 +185,7 @@ class TransformerClassifier:
     def load(
         cls,
         model_dir: str | Path,
-    ) -> "TransformerClassifier":
+    ) -> TransformerClassifier:
         """Load a fine-tuned model from disk.
 
         Parameters

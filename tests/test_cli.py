@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import click
 from click.testing import CliRunner
-import pytest
 
 from clinical_billing_audit.cli import main
 
@@ -25,7 +23,14 @@ def test_cli_help():
 def test_cli_subcommand_help():
     """Test help for subcommands."""
     runner = CliRunner()
-    for subcmd in ["data-quality", "extract-entities", "train", "detect-anomalies", "evaluate", "export-powerbi"]:
+    for subcmd in [
+        "data-quality",
+        "extract-entities",
+        "train",
+        "detect-anomalies",
+        "evaluate",
+        "export-powerbi",
+    ]:
         result = runner.invoke(main, [subcmd, "--help"])
         assert result.exit_code == 0
         assert "Usage" in result.output

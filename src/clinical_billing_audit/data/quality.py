@@ -13,7 +13,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from clinical_billing_audit.utils.logging_config import get_logger
@@ -52,15 +51,17 @@ class QualityReport:
 
     def summary_df(self) -> pd.DataFrame:
         """Return a summary DataFrame."""
-        return pd.DataFrame([
-            {
-                "check": r.check_name,
-                "passed": r.passed,
-                "metric": r.metric_value,
-                "message": r.message,
-            }
-            for r in self.results
-        ])
+        return pd.DataFrame(
+            [
+                {
+                    "check": r.check_name,
+                    "passed": r.passed,
+                    "metric": r.metric_value,
+                    "message": r.message,
+                }
+                for r in self.results
+            ]
+        )
 
     def save(self, path: str | Path) -> None:
         """Save the report to CSV."""
@@ -71,6 +72,7 @@ class QualityReport:
 
 
 # ── Individual Checks ───────────────────────────────────────
+
 
 def check_null_fraction(
     df: pd.DataFrame,
@@ -299,6 +301,7 @@ def check_missing_codes(
 
 # ── Orchestrator ────────────────────────────────────────────
 
+
 class DataQualityChecker:
     """Run a suite of quality checks on a DataFrame.
 
@@ -353,12 +356,8 @@ class DataQualityChecker:
         report = QualityReport()
 
         # Universal checks
-        report.results.append(
-            check_null_fraction(df, max_fraction=self.max_null_fraction)
-        )
-        report.results.append(
-            check_duplicates(df, max_fraction=self.max_duplicate_fraction)
-        )
+        report.results.append(check_null_fraction(df, max_fraction=self.max_null_fraction))
+        report.results.append(check_duplicates(df, max_fraction=self.max_duplicate_fraction))
 
         if dataset_type == "notes":
             report.results.append(
@@ -379,7 +378,8 @@ class DataQualityChecker:
             )
             report.results.append(
                 check_class_balance(
-                    df, label_col=label_col,
+                    df,
+                    label_col=label_col,
                     min_samples_per_class=self.min_samples_per_class,
                 )
             )
@@ -389,7 +389,8 @@ class DataQualityChecker:
         # Log summary
         logger.info(
             "Quality checks: %d passed, %d failed",
-            report.n_passed, report.n_failed,
+            report.n_passed,
+            report.n_failed,
         )
         for r in report.results:
             log_fn = logger.info if r.passed else logger.warning

@@ -6,7 +6,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from clinical_billing_audit.models.anomaly import AnomalyDetector
 from clinical_billing_audit.models.ensemble import EnsembleMismatchScorer

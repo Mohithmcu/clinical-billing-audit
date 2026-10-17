@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from clinical_billing_audit.utils.logging_config import get_logger
@@ -20,9 +19,10 @@ logger = get_logger(__name__)
 
 try:
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    import seaborn as sns
+
     HAS_PLOT = True
 except ImportError:
     HAS_PLOT = False
@@ -70,19 +70,21 @@ def error_breakdown(
         recall = tp / max(tp + fn, 1)
         f1 = 2 * precision * recall / max(precision + recall, 1e-10)
 
-        rows.append({
-            "group": group,
-            "n_samples": len(gdf),
-            "n_true_mismatches": int(y_true.sum()),
-            "n_flagged": int(y_pred.sum()),
-            "TP": tp,
-            "FP": fp,
-            "FN": fn,
-            "TN": tn,
-            "precision": precision,
-            "recall": recall,
-            "f1": f1,
-        })
+        rows.append(
+            {
+                "group": group,
+                "n_samples": len(gdf),
+                "n_true_mismatches": int(y_true.sum()),
+                "n_flagged": int(y_pred.sum()),
+                "TP": tp,
+                "FP": fp,
+                "FN": fn,
+                "TN": tn,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+            }
+        )
 
     result = pd.DataFrame(rows).sort_values("n_samples", ascending=False)
     return result
@@ -113,13 +115,15 @@ def error_by_mismatch_type(
     for mtype, mdf in df.groupby("mismatch_type"):
         detected = mdf[y_pred_col].astype(int).sum()
         total = len(mdf)
-        rows.append({
-            "mismatch_type": mtype,
-            "total": total,
-            "detected": int(detected),
-            "detection_rate": detected / max(total, 1),
-            "missed": total - detected,
-        })
+        rows.append(
+            {
+                "mismatch_type": mtype,
+                "total": total,
+                "detected": int(detected),
+                "detection_rate": detected / max(total, 1),
+                "missed": total - detected,
+            }
+        )
 
     return pd.DataFrame(rows).sort_values("detection_rate", ascending=False)
 
@@ -165,13 +169,15 @@ def error_by_note_length(
         fp = int(((y_true == 0) & (y_pred == 1)).sum())
         fn = int(((y_true == 1) & (y_pred == 0)).sum())
 
-        rows.append({
-            "length_bin": str(bin_label),
-            "n_samples": len(bdf),
-            "precision": tp / max(tp + fp, 1),
-            "recall": tp / max(tp + fn, 1),
-            "fp_rate": fp / max(len(bdf), 1),
-        })
+        rows.append(
+            {
+                "length_bin": str(bin_label),
+                "n_samples": len(bdf),
+                "precision": tp / max(tp + fp, 1),
+                "recall": tp / max(tp + fn, 1),
+                "fp_rate": fp / max(len(bdf), 1),
+            }
+        )
 
     return pd.DataFrame(rows)
 
@@ -201,12 +207,22 @@ def top_false_positives(
     pd.DataFrame
         Top false positive cases.
     """
-    fps = df[(df[y_true_col] == False) & (df[y_pred_col] == True)]
+    fps = df[(~df[y_true_col].astype(bool)) & (df[y_pred_col].astype(bool))]
     if fps.empty:
         return pd.DataFrame()
 
-    cols = [c for c in ["note_id", "medical_specialty", "code_category",
-                         "billed_category", score_col, "severity"] if c in fps.columns]
+    cols = [
+        c
+        for c in [
+            "note_id",
+            "medical_specialty",
+            "code_category",
+            "billed_category",
+            score_col,
+            "severity",
+        ]
+        if c in fps.columns
+    ]
     return fps.nlargest(n, score_col)[cols]
 
 
@@ -235,13 +251,23 @@ def top_false_negatives(
     pd.DataFrame
         Top false negative cases.
     """
-    fns = df[(df[y_true_col] == True) & (df[y_pred_col] == False)]
+    fns = df[(df[y_true_col].astype(bool)) & (~df[y_pred_col].astype(bool))]
     if fns.empty:
         return pd.DataFrame()
 
-    cols = [c for c in ["note_id", "medical_specialty", "code_category",
-                         "billed_category", "mismatch_type", score_col,
-                         "severity"] if c in fns.columns]
+    cols = [
+        c
+        for c in [
+            "note_id",
+            "medical_specialty",
+            "code_category",
+            "billed_category",
+            "mismatch_type",
+            score_col,
+            "severity",
+        ]
+        if c in fns.columns
+    ]
     return fns.nsmallest(n, score_col)[cols]
 
 

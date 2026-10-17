@@ -30,7 +30,6 @@ _DIAGNOSIS_NORM: dict[str, str] = {
     "heart attack": "myocardial_infarction",
     "stroke": "cerebrovascular_accident",
     "cva": "cerebrovascular_accident",
-
     # Metabolic / Endocrine
     "diabetes": "diabetes_mellitus_type2",
     "diabetes mellitus": "diabetes_mellitus_type2",
@@ -41,55 +40,46 @@ _DIAGNOSIS_NORM: dict[str, str] = {
     "hypothyroidism": "hypothyroidism",
     "hyperthyroidism": "hyperthyroidism",
     "obesity": "obesity",
-
     # Respiratory
     "asthma": "asthma",
     "copd": "copd",
     "chronic obstructive pulmonary disease": "copd",
     "pneumonia": "pneumonia",
     "pulmonary embolism": "pulmonary_embolism",
-
     # Musculoskeletal
     "arthritis": "arthritis",
     "osteoarthritis": "osteoarthritis",
     "rheumatoid arthritis": "rheumatoid_arthritis",
     "osteoporosis": "osteoporosis",
     "fracture": "fracture",
-
     # Neurological
     "epilepsy": "epilepsy",
     "migraine": "migraine",
     "alzheimer": "alzheimer_disease",
     "parkinson": "parkinson_disease",
-
     # Mental health
     "depression": "depressive_disorder",
     "anxiety": "anxiety_disorder",
     "schizophrenia": "schizophrenia",
-
     # GI
     "gastroesophageal reflux": "gerd",
     "gerd": "gerd",
     "hepatitis": "hepatitis",
     "cirrhosis": "cirrhosis",
-
     # Renal
     "chronic kidney disease": "chronic_kidney_disease",
     "ckd": "chronic_kidney_disease",
     "urinary tract infection": "urinary_tract_infection",
     "uti": "urinary_tract_infection",
-
     # Oncology
     "cancer": "malignant_neoplasm",
     "carcinoma": "malignant_neoplasm",
     "melanoma": "melanoma",
     "lymphoma": "lymphoma",
     "leukemia": "leukemia",
-
     # Infectious
     "sepsis": "sepsis",
     "cellulitis": "cellulitis",
-
     # Hematologic
     "anemia": "anemia",
     "deep vein thrombosis": "deep_vein_thrombosis",

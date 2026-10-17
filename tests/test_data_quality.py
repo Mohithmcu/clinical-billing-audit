@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-import pytest
 
 from clinical_billing_audit.data.quality import (
     DataQualityChecker,
@@ -71,9 +69,14 @@ def test_check_duplicates():
 def test_check_length_outliers():
     """Test text length outlier check."""
     # 9 normal length notes, 1 extremely short
-    df = pd.DataFrame({
-        "transcription": ["This is a standard length clinical note transcription." for _ in range(9)] + ["hi"]
-    })
+    df = pd.DataFrame(
+        {
+            "transcription": [
+                "This is a standard length clinical note transcription." for _ in range(9)
+            ]
+            + ["hi"]
+        }
+    )
     res = check_length_outliers(df, text_col="transcription", min_length=10)
     assert not res.passed
     assert res.flagged_rows is not None
@@ -82,17 +85,17 @@ def test_check_length_outliers():
 
 def test_check_class_balance():
     """Test specialty class balance checking."""
-    df = pd.DataFrame({
-        "medical_specialty": ["Cardiology"] * 10 + ["Orthopedics"] * 10
-    })
+    df = pd.DataFrame({"medical_specialty": ["Cardiology"] * 10 + ["Orthopedics"] * 10})
     res = check_class_balance(df, label_col="medical_specialty", min_samples_per_class=5)
     assert res.passed
 
     # Severe imbalance
-    df_imbalanced = pd.DataFrame({
-        "medical_specialty": ["Cardiology"] * 100 + ["RareSpecialty"] * 1
-    })
-    res_imb = check_class_balance(df_imbalanced, label_col="medical_specialty", min_samples_per_class=5)
+    df_imbalanced = pd.DataFrame(
+        {"medical_specialty": ["Cardiology"] * 100 + ["RareSpecialty"] * 1}
+    )
+    res_imb = check_class_balance(
+        df_imbalanced, label_col="medical_specialty", min_samples_per_class=5
+    )
     assert not res_imb.passed
 
 

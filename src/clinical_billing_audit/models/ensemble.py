@@ -71,7 +71,6 @@ class EnsembleMismatchScorer:
         pd.DataFrame
             DataFrame with ensemble scores and component breakdown.
         """
-        n = len(df)
         result = df.copy()
 
         # Component 1: Anomaly score
@@ -82,19 +81,23 @@ class EnsembleMismatchScorer:
 
         # Component 2: Classifier mismatch
         if classifier_preds is not None and "billed_category" in df.columns:
-            result["score_classifier"] = np.array([
-                0.0 if pred == billed else 1.0
-                for pred, billed in zip(classifier_preds, df["billed_category"])
-            ])
+            result["score_classifier"] = np.array(
+                [
+                    0.0 if pred == billed else 1.0
+                    for pred, billed in zip(classifier_preds, df["billed_category"])
+                ]
+            )
         else:
             result["score_classifier"] = 0.0
 
         # Component 3: NER mismatch
         if ner_predicted_categories is not None and "billed_category" in df.columns:
-            result["score_ner"] = np.array([
-                0.0 if ner_cat == billed else 0.8
-                for ner_cat, billed in zip(ner_predicted_categories, df["billed_category"])
-            ])
+            result["score_ner"] = np.array(
+                [
+                    0.0 if ner_cat == billed else 0.8
+                    for ner_cat, billed in zip(ner_predicted_categories, df["billed_category"])
+                ]
+            )
         else:
             result["score_ner"] = 0.0
 
@@ -115,9 +118,11 @@ class EnsembleMismatchScorer:
         # Classify
         result["ensemble_flag"] = result["ensemble_score"] >= 0.5
         result["ensemble_severity"] = result["ensemble_score"].apply(
-            lambda s: "HIGH_RISK" if s >= 0.75
-            else ("MEDIUM_RISK" if s >= 0.55
-                  else ("LOW_RISK" if s >= 0.40 else "NORMAL"))
+            lambda s: (
+                "HIGH_RISK"
+                if s >= 0.75
+                else ("MEDIUM_RISK" if s >= 0.55 else ("LOW_RISK" if s >= 0.40 else "NORMAL"))
+            )
         )
 
         logger.info(
@@ -146,12 +151,14 @@ class EnsembleMismatchScorer:
         rows = []
         for comp in components:
             if comp in scored_df.columns:
-                rows.append({
-                    "component": comp.replace("score_", ""),
-                    "weight": self.weights.get(comp.replace("score_", ""), 0),
-                    "mean": float(scored_df[comp].mean()),
-                    "std": float(scored_df[comp].std()),
-                    "min": float(scored_df[comp].min()),
-                    "max": float(scored_df[comp].max()),
-                })
+                rows.append(
+                    {
+                        "component": comp.replace("score_", ""),
+                        "weight": self.weights.get(comp.replace("score_", ""), 0),
+                        "mean": float(scored_df[comp].mean()),
+                        "std": float(scored_df[comp].std()),
+                        "min": float(scored_df[comp].min()),
+                        "max": float(scored_df[comp].max()),
+                    }
+                )
         return pd.DataFrame(rows)

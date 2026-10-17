@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 from clinical_billing_audit.data.cleaners import (
     clean_claims_data,
@@ -14,9 +13,7 @@ from clinical_billing_audit.data.cleaners import (
     profile_dataset,
 )
 from clinical_billing_audit.data.loaders import (
-    load_cms_claims,
     load_icd9_mapping,
-    load_mtsamples,
 )
 from clinical_billing_audit.data.mismatch_injector import inject_mismatches
 from clinical_billing_audit.data.pairing import pair_notes_and_claims
@@ -24,14 +21,16 @@ from clinical_billing_audit.data.pairing import pair_notes_and_claims
 
 def test_clean_clinical_notes():
     """Test clinical note cleaning pipeline."""
-    raw_df = pd.DataFrame({
-        "transcription": [
-            "  Valid note text that has plenty of length to exceed fifty characters easily.  ",
-            "Short",  # Too short
-            None,     # Null
-            "  Valid note text that has plenty of length to exceed fifty characters easily.  ",  # Duplicate
-        ]
-    })
+    raw_df = pd.DataFrame(
+        {
+            "transcription": [
+                "  Valid note text that has plenty of length to exceed fifty characters easily.  ",
+                "Short",  # Too short
+                None,  # Null
+                "  Valid note text that has plenty of length to exceed fifty characters easily.  ",  # Duplicate
+            ]
+        }
+    )
     cleaned = clean_clinical_notes(raw_df, min_length=50)
     assert len(cleaned) == 1
     assert "Valid note text" in cleaned["transcription"].iloc[0]
@@ -39,9 +38,9 @@ def test_clean_clinical_notes():
 
 def test_clean_specialty_labels():
     """Test specialty label cleaning."""
-    df = pd.DataFrame({
-        "medical_specialty": ["  Cardiovascular / Pulmonary  ", "Orthopedic -", "nan", None]
-    })
+    df = pd.DataFrame(
+        {"medical_specialty": ["  Cardiovascular / Pulmonary  ", "Orthopedic -", "nan", None]}
+    )
     cleaned = clean_specialty_labels(df)
     assert len(cleaned) == 2
     assert "Cardiovascular / Pulmonary" in cleaned["medical_specialty"].values
@@ -91,5 +90,4 @@ def test_inject_mismatches(sample_paired_df: pd.DataFrame):
     assert "is_mismatch" in injected.columns
     assert "mismatch_type" in injected.columns
     assert "billed_category" in injected.columns
-    # Check that some mismatches were injected
-    assert (injected["is_mismatch"] == True).sum() > 0
+    assert injected["is_mismatch"].sum() > 0

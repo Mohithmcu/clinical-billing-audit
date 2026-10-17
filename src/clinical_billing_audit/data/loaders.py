@@ -51,9 +51,7 @@ def load_mtsamples(filepath: str | Path) -> pd.DataFrame:
     if text_col and text_col != "transcription":
         df = df.rename(columns={text_col: "transcription"})
     if "transcription" not in df.columns:
-        raise ValueError(
-            f"Cannot find text column in MTSamples. Columns: {list(df.columns)}"
-        )
+        raise ValueError(f"Cannot find text column in MTSamples. Columns: {list(df.columns)}")
 
     logger.info("Loaded %d MTSamples notes from %s", len(df), filepath)
     return df
@@ -91,7 +89,10 @@ def load_cms_claims(
 
     logger.info(
         "Loaded %d %s claims from %s (columns: %d)",
-        len(df), claim_type, filepath, len(df.columns),
+        len(df),
+        claim_type,
+        filepath,
+        len(df.columns),
     )
     return df
 

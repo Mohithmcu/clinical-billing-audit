@@ -104,14 +104,17 @@ class AnomalyDetector:
             spec_totals = df.groupby("medical_specialty").size().reset_index(name="total")
             spec_code_counts = spec_code_counts.merge(spec_totals, on="medical_specialty")
             spec_code_counts["frequency"] = spec_code_counts["count"] / spec_code_counts["total"]
-            freq_map = dict(zip(
-                zip(spec_code_counts["medical_specialty"], spec_code_counts["billed_category"]),
-                spec_code_counts["frequency"],
-            ))
+            freq_map = dict(
+                zip(
+                    zip(spec_code_counts["medical_specialty"], spec_code_counts["billed_category"]),
+                    spec_code_counts["frequency"],
+                )
+            )
 
             features["code_frequency_deviation"] = df.apply(
-                lambda row: 1 - freq_map.get(
-                    (row.get("medical_specialty"), row.get("billed_category")), 0.5
+                lambda row: (
+                    1
+                    - freq_map.get((row.get("medical_specialty"), row.get("billed_category")), 0.5)
                 ),
                 axis=1,
             )
@@ -166,16 +169,20 @@ class AnomalyDetector:
             entropies = -np.sum(np.where(probs > 0, probs * log_probs, 0.0), axis=1)
             provider_entropy = dict(zip(prov_counts.index, entropies))
             median_entropy = float(np.median(entropies)) if len(entropies) > 0 else 1.0
-            features["provider_entropy_deviation"] = df["provider_id"].map(
-                lambda p: abs(provider_entropy.get(p, median_entropy) - median_entropy)
-            ).fillna(0.0)
+            features["provider_entropy_deviation"] = (
+                df["provider_id"]
+                .map(lambda p: abs(provider_entropy.get(p, median_entropy) - median_entropy))
+                .fillna(0.0)
+            )
         else:
             features["provider_entropy_deviation"] = 0.0
 
         # Feature 6: NER entity density (if available)
         if ner_df is not None and "n_entities" in ner_df.columns:
-            features["entity_density"] = ner_df["n_entities"].fillna(0).values[:len(df)]
-            features["diagnosis_count"] = ner_df.get("n_diagnoses", pd.Series(0)).fillna(0).values[:len(df)]
+            features["entity_density"] = ner_df["n_entities"].fillna(0).values[: len(df)]
+            features["diagnosis_count"] = (
+                ner_df.get("n_diagnoses", pd.Series(0)).fillna(0).values[: len(df)]
+            )
         else:
             features["entity_density"] = 0.0
             features["diagnosis_count"] = 0.0
@@ -209,11 +216,13 @@ class AnomalyDetector:
 
         logger.info(
             "Anomaly detector fitted on %d samples with %d features",
-            len(feature_df), feature_df.shape[1],
+            len(feature_df),
+            feature_df.shape[1],
         )
         logger.info(
             "Detected %d anomalies (%.1f%%)",
-            n_anomalies, 100 * n_anomalies / len(feature_df),
+            n_anomalies,
+            100 * n_anomalies / len(feature_df),
         )
 
         return {
@@ -315,16 +324,12 @@ class AnomalyDetector:
             Original data with anomaly score, severity, and flag columns.
         """
         scores = self.score(feature_df)
-        severities = self.classify_severity(
-            scores, high_threshold, medium_threshold, low_threshold
-        )
+        severities = self.classify_severity(scores, high_threshold, medium_threshold, low_threshold)
 
         result = df.copy()
         result["anomaly_score"] = scores
         result["severity"] = severities
-        result["severity_label"] = [
-            SEVERITY_LEVELS.get(s, "Unknown") for s in severities
-        ]
+        result["severity_label"] = [SEVERITY_LEVELS.get(s, "Unknown") for s in severities]
         result["is_flagged"] = result["severity"] != "NORMAL"
 
         # Summary
@@ -354,7 +359,7 @@ class AnomalyDetector:
         logger.info("Anomaly detector saved to %s", directory)
 
     @classmethod
-    def load(cls, directory: str | Path) -> "AnomalyDetector":
+    def load(cls, directory: str | Path) -> AnomalyDetector:
         """Load a saved anomaly detector."""
         directory = Path(directory)
 

@@ -10,7 +10,7 @@ Normalises clinical notes before NER and feature extraction:
 from __future__ import annotations
 
 import re
-from typing import Iterator
+from collections.abc import Iterator
 
 from clinical_billing_audit.utils.constants import CLINICAL_ABBREVIATIONS
 from clinical_billing_audit.utils.logging_config import get_logger
@@ -139,7 +139,7 @@ def segment_sections(text: str) -> dict[str, str]:
             # Save previous section
             sections[current_header] = "\n".join(current_lines).strip()
             current_header = match.group(1).strip().upper()
-            remainder = line[match.end():].strip()
+            remainder = line[match.end() :].strip()
             current_lines = [remainder] if remainder else []
         else:
             current_lines.append(line)
@@ -171,7 +171,7 @@ def extract_sentences(text: str) -> list[str]:
         protected = protected.replace(abbr, abbr.replace(".", "<DOT>"))
 
     # Split on sentence boundaries
-    sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', protected)
+    sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z])", protected)
 
     # Restore dots
     sentences = [s.replace("<DOT>", ".").strip() for s in sentences]

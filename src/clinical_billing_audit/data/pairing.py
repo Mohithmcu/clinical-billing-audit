@@ -128,16 +128,20 @@ def pair_notes_and_claims(
         for ni, ci in zip(note_indices, claim_indices):
             note_row = cat_notes.loc[ni]
             claim_row = cat_claims.loc[ci]
-            paired_rows.append({
-                "pair_id": f"PAIR_{len(paired_rows):06d}",
-                "note_id": note_row.get("note_id", ""),
-                "transcription": note_row.get("transcription", ""),
-                "medical_specialty": note_row.get("medical_specialty", ""),
-                "code_category": cat,
-                "primary_diagnosis_code": str(claim_row.get(primary_diag_col, "")),
-                "claim_id": str(claim_row.get("CLM_ID", claim_row.get("clm_id", ""))),
-                "claim_payment": float(claim_row.get("CLM_PMT_AMT", claim_row.get("clm_pmt_amt", 0))),
-            })
+            paired_rows.append(
+                {
+                    "pair_id": f"PAIR_{len(paired_rows):06d}",
+                    "note_id": note_row.get("note_id", ""),
+                    "transcription": note_row.get("transcription", ""),
+                    "medical_specialty": note_row.get("medical_specialty", ""),
+                    "code_category": cat,
+                    "primary_diagnosis_code": str(claim_row.get(primary_diag_col, "")),
+                    "claim_id": str(claim_row.get("CLM_ID", claim_row.get("clm_id", ""))),
+                    "claim_payment": float(
+                        claim_row.get("CLM_PMT_AMT", claim_row.get("clm_pmt_amt", 0))
+                    ),
+                }
+            )
 
             # Limit total pairs for manageable dataset size
             if len(paired_rows) >= 10000:

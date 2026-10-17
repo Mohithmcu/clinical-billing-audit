@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import numpy as np
@@ -14,6 +13,7 @@ logger = get_logger(__name__)
 
 
 # ── Text Cleaning ───────────────────────────────────────────
+
 
 def clean_clinical_notes(
     df: pd.DataFrame,
@@ -68,9 +68,7 @@ def clean_clinical_notes(
     )
 
     # 3. Remove PHI-like placeholders
-    df[text_col] = df[text_col].str.replace(
-        r"\[\*\*[^\]]*\*\*\]", "[REDACTED]", regex=True
-    )
+    df[text_col] = df[text_col].str.replace(r"\[\*\*[^\]]*\*\*\]", "[REDACTED]", regex=True)
 
     # 4. Remove very short/long notes
     lengths = df[text_col].str.len()
@@ -79,7 +77,9 @@ def clean_clinical_notes(
     df = df[mask_length]
     logger.info(
         "Dropped %d notes outside length range [%d, %d]",
-        n_before_length - len(df), min_length, max_length,
+        n_before_length - len(df),
+        min_length,
+        max_length,
     )
 
     # 5. Drop exact duplicates
@@ -90,7 +90,9 @@ def clean_clinical_notes(
     df = df.reset_index(drop=True)
     logger.info(
         "Cleaning complete: %d → %d notes (%.1f%% retained)",
-        n_start, len(df), 100 * len(df) / max(n_start, 1),
+        n_start,
+        len(df),
+        100 * len(df) / max(n_start, 1),
     )
     return df
 
@@ -115,12 +117,7 @@ def clean_specialty_labels(df: pd.DataFrame, col: str = "medical_specialty") -> 
         logger.warning("Specialty column '%s' not found — skipping.", col)
         return df
 
-    df[col] = (
-        df[col]
-        .astype(str)
-        .str.strip()
-        .str.replace(r"\s+", " ", regex=True)
-    )
+    df[col] = df[col].astype(str).str.strip().str.replace(r"\s+", " ", regex=True)
 
     # Remove leading/trailing whitespace and hyphens
     df[col] = df[col].str.strip(" -")
@@ -138,6 +135,7 @@ def clean_specialty_labels(df: pd.DataFrame, col: str = "medical_specialty") -> 
 
 
 # ── Data Profiling ──────────────────────────────────────────
+
 
 def profile_dataset(
     df: pd.DataFrame,
@@ -192,9 +190,7 @@ def profile_dataset(
         label_dist = df[label_col].value_counts()
         profile["label_distribution"] = label_dist.to_dict()
         profile["n_labels"] = int(label_dist.shape[0])
-        profile["label_balance_ratio"] = float(
-            label_dist.min() / label_dist.max()
-        )
+        profile["label_balance_ratio"] = float(label_dist.min() / label_dist.max())
 
     # Duplicate check
     if text_col in df.columns:
@@ -206,11 +202,13 @@ def profile_dataset(
     if output_path:
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        summary_df = pd.DataFrame([
-            {"metric": k, "value": str(v)}
-            for k, v in profile.items()
-            if not isinstance(v, (dict, list))
-        ])
+        summary_df = pd.DataFrame(
+            [
+                {"metric": k, "value": str(v)}
+                for k, v in profile.items()
+                if not isinstance(v, (dict, list))
+            ]
+        )
         summary_df.to_csv(output_path, index=False)
         logger.info("Profile saved to %s", output_path)
 

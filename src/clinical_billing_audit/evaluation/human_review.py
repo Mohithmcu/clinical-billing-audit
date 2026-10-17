@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from clinical_billing_audit.utils.logging_config import get_logger
@@ -52,14 +51,13 @@ def create_review_sample(
     pd.DataFrame
         Sampled DataFrame for review.
     """
-    rng = np.random.RandomState(random_state)
     n_flagged = int(n_samples * include_predicted_mismatches)
     n_normal = n_samples - n_flagged
 
     # Sample from flagged
     if "is_flagged" in df.columns:
-        flagged = df[df["is_flagged"] == True]
-        normal = df[df["is_flagged"] == False]
+        flagged = df[df["is_flagged"].astype(bool)]
+        normal = df[~df["is_flagged"].astype(bool)]
     elif score_col in df.columns:
         median_score = df[score_col].median()
         flagged = df[df[score_col] >= median_score]
@@ -75,13 +73,17 @@ def create_review_sample(
     flagged_sample = flagged.sample(n=n_flagged_actual, random_state=random_state)
     normal_sample = normal.sample(n=n_normal_actual, random_state=random_state)
 
-    sample = pd.concat([flagged_sample, normal_sample]).sample(
-        frac=1, random_state=random_state
-    ).reset_index(drop=True)
+    sample = (
+        pd.concat([flagged_sample, normal_sample])
+        .sample(frac=1, random_state=random_state)
+        .reset_index(drop=True)
+    )
 
     logger.info(
         "Created review sample: %d total (%d flagged, %d normal)",
-        len(sample), n_flagged_actual, n_normal_actual,
+        len(sample),
+        n_flagged_actual,
+        n_normal_actual,
     )
     return sample
 
@@ -118,10 +120,7 @@ def generate_labeling_template(
 
     if text_col in sample_df.columns:
         template["note_preview"] = (
-            sample_df[text_col]
-            .astype(str)
-            .str[:max_text_preview]
-            .str.replace("\n", " ")
+            sample_df[text_col].astype(str).str[:max_text_preview].str.replace("\n", " ")
         )
 
     if "medical_specialty" in sample_df.columns:
@@ -211,6 +210,7 @@ def compare_with_model(
     agreement = (human_is_mismatch == model_is_flagged).mean()
 
     from clinical_billing_audit.evaluation.metrics import compute_binary_metrics
+
     metrics = compute_binary_metrics(
         human_is_mismatch.astype(int),
         model_is_flagged.astype(int),
@@ -220,6 +220,9 @@ def compare_with_model(
 
     logger.info(
         "Human vs. Model comparison: %d samples, %.1f%% agreement, P=%.2f R=%.2f",
-        len(merged), 100 * agreement, metrics["precision"], metrics["recall"],
+        len(merged),
+        100 * agreement,
+        metrics["precision"],
+        metrics["recall"],
     )
     return metrics

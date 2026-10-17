@@ -19,7 +19,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, f1_score
 from sklearn.model_selection import StratifiedKFold, cross_val_score
-from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 from clinical_billing_audit.utils.logging_config import get_logger
@@ -112,11 +111,13 @@ class BaselineClassifier:
             ner_cols = [c for c in ner_features.columns if c.startswith("n_")]
             if ner_cols:
                 ner_matrix = ner_features[ner_cols].fillna(0).values
-                combined = hstack([
-                    tfidf_matrix,
-                    length_features,
-                    ner_matrix,
-                ])
+                combined = hstack(
+                    [
+                        tfidf_matrix,
+                        length_features,
+                        ner_matrix,
+                    ]
+                )
                 self._feature_names = (
                     list(self.vectorizer.get_feature_names_out())
                     + ["char_length", "word_length"]
@@ -125,10 +126,10 @@ class BaselineClassifier:
                 return combined
 
         combined = hstack([tfidf_matrix, length_features])
-        self._feature_names = (
-            list(self.vectorizer.get_feature_names_out())
-            + ["char_length", "word_length"]
-        )
+        self._feature_names = list(self.vectorizer.get_feature_names_out()) + [
+            "char_length",
+            "word_length",
+        ]
         return combined
 
     def fit(
@@ -159,7 +160,8 @@ class BaselineClassifier:
 
         logger.info(
             "Feature matrix: %s, classes: %d",
-            X.shape, len(self.label_encoder.classes_),
+            X.shape,
+            len(self.label_encoder.classes_),
         )
 
         # Scale
@@ -247,13 +249,18 @@ class BaselineClassifier:
 
         cv_splitter = StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
         scores = cross_val_score(
-            self.classifier, X, y,
-            cv=cv_splitter, scoring="f1_weighted",
+            self.classifier,
+            X,
+            y,
+            cv=cv_splitter,
+            scoring="f1_weighted",
         )
 
         logger.info(
             "%d-fold CV weighted F1: %.4f ± %.4f",
-            cv, scores.mean(), scores.std(),
+            cv,
+            scores.mean(),
+            scores.std(),
         )
         return {
             "cv_f1_mean": float(scores.mean()),
@@ -310,13 +317,17 @@ class BaselineClassifier:
 
             for rank, idx in enumerate(top_indices):
                 if idx < len(self._feature_names):
-                    rows.append({
-                        "class": cls,
-                        "rank": rank + 1,
-                        "feature": self._feature_names[idx],
-                        "coefficient": float(coefs[i, idx]) if not issparse(coefs) else float(coefs[i, idx]),
-                        "abs_coefficient": float(importances[idx]),
-                    })
+                    rows.append(
+                        {
+                            "class": cls,
+                            "rank": rank + 1,
+                            "feature": self._feature_names[idx],
+                            "coefficient": float(coefs[i, idx])
+                            if not issparse(coefs)
+                            else float(coefs[i, idx]),
+                            "abs_coefficient": float(importances[idx]),
+                        }
+                    )
 
         return pd.DataFrame(rows)
 
@@ -337,7 +348,9 @@ class BaselineClassifier:
         joblib.dump(self.scaler, directory / "scaler.joblib")
 
         meta = {
-            "tfidf_params": {k: list(v) if isinstance(v, tuple) else v for k, v in self.tfidf_params.items()},
+            "tfidf_params": {
+                k: list(v) if isinstance(v, tuple) else v for k, v in self.tfidf_params.items()
+            },
             "lr_params": self.lr_params,
             "classes": list(self.label_encoder.classes_),
             "n_features": len(self._feature_names),
@@ -348,7 +361,7 @@ class BaselineClassifier:
         logger.info("Baseline model saved to %s", directory)
 
     @classmethod
-    def load(cls, directory: str | Path) -> "BaselineClassifier":
+    def load(cls, directory: str | Path) -> BaselineClassifier:
         """Load a saved model.
 
         Parameters
@@ -369,7 +382,10 @@ class BaselineClassifier:
         model.label_encoder = joblib.load(directory / "label_encoder.joblib")
         model.scaler = joblib.load(directory / "scaler.joblib")
         model._is_fitted = True
-        model._feature_names = list(model.vectorizer.get_feature_names_out()) + ["char_length", "word_length"]
+        model._feature_names = list(model.vectorizer.get_feature_names_out()) + [
+            "char_length",
+            "word_length",
+        ]
 
         logger.info("Baseline model loaded from %s", directory)
         return model

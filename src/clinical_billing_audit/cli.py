@@ -40,8 +40,6 @@ def main(ctx: click.Context, config: str, verbose: bool) -> None:
 def data_quality(ctx: click.Context) -> None:
     """Run data quality checks on raw data."""
     from clinical_billing_audit.data.cleaners import (
-        clean_clinical_notes,
-        clean_specialty_labels,
         profile_dataset,
     )
     from clinical_billing_audit.data.loaders import load_mtsamples
@@ -148,7 +146,11 @@ def train(ctx: click.Context, model: str) -> None:
         # Split
         test_size = bcfg.get("test_size", 0.2)
         X_train, X_test, y_train, y_test = train_test_split(
-            texts, labels, test_size=test_size, stratify=labels, random_state=cfg.seed,
+            texts,
+            labels,
+            test_size=test_size,
+            stratify=labels,
+            random_state=cfg.seed,
         )
 
         # Train
@@ -157,7 +159,9 @@ def train(ctx: click.Context, model: str) -> None:
 
         # Evaluate
         eval_report = classifier.evaluate(X_test, y_test)
-        click.echo(f"Test weighted F1: {eval_report.get('weighted avg', {}).get('f1-score', 0):.4f}")
+        click.echo(
+            f"Test weighted F1: {eval_report.get('weighted avg', {}).get('f1-score', 0):.4f}"
+        )
 
         # Save
         save_dir = Path("models/tfidf_lr")
@@ -190,12 +194,15 @@ def detect_anomalies(ctx: click.Context) -> None:
 
     logger.info("=== Anomaly Detection ===")
 
-    processed_path = Path(cfg.get("data.processed_dir", "data/processed")) / "paired_with_mismatches.csv"
+    processed_path = (
+        Path(cfg.get("data.processed_dir", "data/processed")) / "paired_with_mismatches.csv"
+    )
     if not processed_path.exists():
         click.echo(f"❌ Processed data not found at {processed_path}. Run the pipeline first.")
         return
 
     import pandas as pd
+
     from clinical_billing_audit.models.anomaly import AnomalyDetector
 
     df = pd.read_csv(processed_path)
@@ -232,8 +239,8 @@ def evaluate(ctx: click.Context) -> None:
         click.echo(f"❌ Results not found at {results_path}. Run anomaly detection first.")
         return
 
-    import numpy as np
     import pandas as pd
+
     from clinical_billing_audit.evaluation.metrics import (
         compute_binary_metrics,
         compute_threshold_sweep,
@@ -266,25 +273,31 @@ def evaluate(ctx: click.Context) -> None:
     # Save plots
     figs_dir = Path("reports/figures")
     plot_precision_recall_curve(y_true, y_score, output_path=figs_dir / "pr_curve.png")
-    plot_confusion_matrix(y_true, y_pred, class_names=["Correct", "Mismatch"],
-                          output_path=figs_dir / "confusion_matrix.png")
+    plot_confusion_matrix(
+        y_true,
+        y_pred,
+        class_names=["Correct", "Mismatch"],
+        output_path=figs_dir / "confusion_matrix.png",
+    )
 
     # Save report
-    report = generate_evaluation_report(metrics, threshold_df,
-                                         output_path=Path("reports/evaluation_report.md"))
-    click.echo(f"\n✅ Evaluation report saved → reports/evaluation_report.md")
+    generate_evaluation_report(
+        metrics, threshold_df, output_path=Path("reports/evaluation_report.md")
+    )
+    click.echo("\n✅ Evaluation report saved → reports/evaluation_report.md")
 
 
 @main.command(name="export-powerbi")
-@click.option("--output-dir", "-o", default="reports/powerbi", help="Output directory for Power BI CSVs")
+@click.option(
+    "--output-dir", "-o", default="reports/powerbi", help="Output directory for Power BI CSVs"
+)
 @click.pass_context
 def export_powerbi(ctx: click.Context, output_dir: str) -> None:
     """Export pipeline results as structured CSVs for Power BI."""
-    from clinical_billing_audit.dashboard.data_export import export_all
-    from clinical_billing_audit.utils.logging_config import get_logger
     import pandas as pd
 
-    logger = get_logger("cli")
+    from clinical_billing_audit.dashboard.data_export import export_all
+
     cfg = ctx.obj["config"]
     processed_dir = Path(cfg.get("data.processed_dir", "data/processed"))
     results_path = processed_dir / "flagged_results.csv"

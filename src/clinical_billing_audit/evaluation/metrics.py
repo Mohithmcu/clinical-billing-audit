@@ -19,9 +19,11 @@ logger = get_logger(__name__)
 # Guard matplotlib imports for headless environments
 try:
     import matplotlib
+
     matplotlib.use("Agg")  # Non-interactive backend
     import matplotlib.pyplot as plt
     import seaborn as sns
+
     HAS_PLOT = True
 except ImportError:
     HAS_PLOT = False
@@ -114,7 +116,8 @@ def compute_multiclass_metrics(
     from sklearn.metrics import classification_report, f1_score
 
     report = classification_report(
-        y_true, y_pred,
+        y_true,
+        y_pred,
         target_names=class_names,
         output_dict=True,
         zero_division=0,
@@ -123,9 +126,7 @@ def compute_multiclass_metrics(
     report["overall_f1_weighted"] = float(
         f1_score(y_true, y_pred, average="weighted", zero_division=0)
     )
-    report["overall_f1_macro"] = float(
-        f1_score(y_true, y_pred, average="macro", zero_division=0)
-    )
+    report["overall_f1_macro"] = float(f1_score(y_true, y_pred, average="macro", zero_division=0))
 
     return report
 
@@ -159,14 +160,16 @@ def compute_threshold_sweep(
     rows = []
     for t in thresholds:
         preds = (y_score >= t).astype(int)
-        rows.append({
-            "threshold": float(t),
-            "precision": float(precision_score(y_true, preds, zero_division=0)),
-            "recall": float(recall_score(y_true, preds, zero_division=0)),
-            "f1": float(f1_score(y_true, preds, zero_division=0)),
-            "n_flagged": int(preds.sum()),
-            "flag_rate": float(preds.mean()),
-        })
+        rows.append(
+            {
+                "threshold": float(t),
+                "precision": float(precision_score(y_true, preds, zero_division=0)),
+                "recall": float(recall_score(y_true, preds, zero_division=0)),
+                "f1": float(f1_score(y_true, preds, zero_division=0)),
+                "n_flagged": int(preds.sum()),
+                "flag_rate": float(preds.mean()),
+            }
+        )
 
     return pd.DataFrame(rows)
 
@@ -200,8 +203,7 @@ def plot_precision_recall_curve(
     ap = average_precision_score(y_true, y_score)
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax.plot(recall, precision, color="#2563eb", linewidth=2,
-            label=f"AP = {ap:.3f}")
+    ax.plot(recall, precision, color="#2563eb", linewidth=2, label=f"AP = {ap:.3f}")
     ax.fill_between(recall, precision, alpha=0.1, color="#2563eb")
     ax.set_xlabel("Recall", fontsize=12)
     ax.set_ylabel("Precision", fontsize=12)
@@ -250,7 +252,10 @@ def plot_confusion_matrix(
 
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(
-        cm, annot=True, fmt="d", cmap="Blues",
+        cm,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
         xticklabels=class_names or "auto",
         yticklabels=class_names or "auto",
         ax=ax,
@@ -303,11 +308,13 @@ def generate_evaluation_report(
             lines.append(f"| {key} | {value} |")
 
     if threshold_df is not None:
-        lines.extend([
-            "\n## Threshold Analysis\n",
-            "| Threshold | Precision | Recall | F1 | Flag Rate |",
-            "|-----------|-----------|--------|-----|-----------|",
-        ])
+        lines.extend(
+            [
+                "\n## Threshold Analysis\n",
+                "| Threshold | Precision | Recall | F1 | Flag Rate |",
+                "|-----------|-----------|--------|-----|-----------|",
+            ]
+        )
         for _, row in threshold_df.iterrows():
             lines.append(
                 f"| {row['threshold']:.2f} | {row['precision']:.3f} | "
